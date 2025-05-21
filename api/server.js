@@ -1,6 +1,5 @@
 import Fastify from 'fastify'
 import * as cheerio from 'cheerio'
-import { writeFileSync } from 'node:fs'
 
 const fastify = Fastify({
   logger: true
@@ -16,9 +15,53 @@ const facultiesToNumber = {
   fkip: 7,
 }
 
-fastify.get('/faculty/:faculty', async function handler (request, reply) {
-  const faculty = request.params.faculty
-  if (!facultiesToNumber.hasOwnProperty(faculty)) {
+const prodToNumber = {
+  'ilmu-hukum': 1,
+  'magister-ilmu-hukum': 24,
+  'teknologi-industri-pertanian': 2,
+  'agribisnis': 3,
+  'agroteknologi': 4,
+  'ilmu-kelautan': 5,
+  'manajemen-sumberdaya-perairan': 35,
+  'magister-pengelolaan-sda': 37,
+  'ekonomi-pembangunan': 6,
+  'manajemen': 7,
+  'akuntansi': 8,
+  'd3-akuntansi': 21,
+  'magister-manajemen': 22,
+  'magister-akuntansi': 25,
+  'd3-enterpreneurship': 26,
+  'magister-ilmu-ekonomi': 36,
+  'teknik-industri': 9,
+  'teknik-informatika': 10,
+  'manajemen-informatika': 11,
+  'teknik-multimedia-dan-jaringan': 19,
+  'mekatronika': 20,
+  'teknik-elektro': 23,
+  'teknik-mekatronika': 33,
+  'sosiologi': 12,
+  'ilmu-komunikasi': 13,
+  'psikologi': 14,
+  'sastra-inggris': 15,
+  'ekonomi-syariah':16,
+  'hukum-bisnis-syariah': 17,
+  'pgsd': 18,
+  'pendidikan-bahasa-indonesia': 27,
+  'pendidikan-informatika': 28,
+  'pendidikan-ipa': 29,
+  'pgpaud': 30,
+}
+
+fastify.get('/journals/:path', async function handler (request, reply) {
+  const path = request.params.path
+  let searchBy, code
+  if (facultiesToNumber.hasOwnProperty(path)) {
+    searchBy = 'byfac'
+    code = facultiesToNumber[path]
+  } else if (prodToNumber.hasOwnProperty(path)) {
+    searchBy = 'byprod'
+    code = prodToNumber[path]
+  } else {
     reply
       .code(404)
       .send({ message: 'facutly not found'})
@@ -26,8 +69,7 @@ fastify.get('/faculty/:faculty', async function handler (request, reply) {
     return
   }
 
-  const $ = await cheerio.fromURL(`https://pta.trunojoyo.ac.id/c_search/byfac/${facultiesToNumber[faculty]}`)
-
+  const $ = await cheerio.fromURL(`https://pta.trunojoyo.ac.id/c_search/${searchBy}/${code}`)
 
   const listItems = $('ul.items').children('li')
 
