@@ -1,6 +1,9 @@
 import Fastify from 'fastify'
 import * as cheerio from 'cheerio'
 
+import { promisify } from 'node:util'
+const delay = promisify(setTimeout)
+
 const fastify = Fastify({
   logger: true
 })
@@ -64,31 +67,47 @@ fastify.get('/journals/:path', async function handler (request, reply) {
   } else {
     reply
       .code(404)
-      .send({ message: 'facutly not found'})
+      .send({ message: 'faculty or prodi not found'})
 
     return
   }
 
-  const $ = await cheerio.fromURL(`https://pta.trunojoyo.ac.id/c_search/${searchBy}/${code}`)
-
-  const listItems = $('ul.items').children('li')
+  const startPage = request.query.startPage ?? 1
+  const endPage = request.query.endPage ?? startPage
+  const includeAbstract = request.query.includeAbstract === 'true'
 
   let results = []
-  listItems.each((index, item) => {
-    const authors = $(item).find('div > span').map((i, el) => {
-      return $(el).text().split(/\s*:\s*/)[1]
-    }).toArray()
-    console.log(authors)
+  for (let i = startPage; i <= endPage; i++) {
+    console.log('page', i)
+    const $ = await cheerio.fromURL(`https://pta.trunojoyo.ac.id/c_search/${searchBy}/${code}/${i}`)
 
-    results.push({
-      judul: $(item).find('a.title').text(),
-      penulis: authors[0],
-      pembimbing1: authors[1],
-      pembimbing2: authors[2],
-      detailLink: $(item).find('a.button').prop('href'),
-    })
-  })
-  console.log(results)
+    const listItems = $('ul.items').children('li')
+
+    for (let j = 0; j < listItems.length; j++) {
+      const authors = $(listItems[j]).find('div > span').map((i, el) => {
+        return $(el).text().split(/\s*:\s*/)[1]
+      }).toArray()
+
+      let data = {
+        judul: $(listItems[j]).find('a.title').text(),
+        penulis: authors[0],
+        pembimbing1: authors[1],
+        pembimbing2: authors[2],
+        detailLink: $(listItems[j]).find('a.button').prop('href'),
+      }
+
+      if (includeAbstract) {
+        const $ = await cheerio.fromURL(data.detailLink)
+        const paragraphs = $('p[align=justify]').contents()
+
+        data.abstraksi = paragraphs[0].data
+        data.abstract = paragraphs[1].data
+        results.push(data)
+      } else {
+        results.push(data)
+      }
+    }
+  }
 
   return results
 })
