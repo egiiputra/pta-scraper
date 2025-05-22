@@ -1,11 +1,31 @@
 import Fastify from 'fastify'
 import * as cheerio from 'cheerio'
 
-import { promisify } from 'node:util'
-const delay = promisify(setTimeout)
-
 const fastify = Fastify({
   logger: true
+})
+await fastify.register(import('@fastify/swagger'), {
+  mode: 'static',
+  specification: {
+    path: './docs/openapi.json'
+  },
+  exposeRoute: true
+})
+
+await fastify.register(import('@fastify/swagger-ui'), {
+  routePrefix: '/docs',
+  uiConfig: {
+    docExpansion: 'full',
+    deepLinking: false
+  },
+  uiHooks: {
+    onRequest: function (request, reply, next) { next() },
+    preHandler: function (request, reply, next) { next() }
+  },
+  staticCSP: true,
+  transformStaticCSP: (header) => header,
+  transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
+  transformSpecificationClone: true
 })
 
 const facultiesToNumber = {
