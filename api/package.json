@@ -10,6 +10,8 @@
   "keywords": [],
   "author": "egiiputra",
   "dependencies": {
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.2",
     "cheerio": "^1.0.0",
     "fastify": "^5.0.0"
   },
