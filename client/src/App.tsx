@@ -187,7 +187,7 @@ function App() {
             <Button type="submit" className="bg-green-600">
               <Download/> Scrape
             </Button>
-            <Button className="bg-blue-500" onClick={downloadJSONAsCSV}>
+            <Button className="bg-blue-500" onClick={downloadJSONAsCSV} disabled={(data.length === 0)}>
               <FileDown /> Download CSV
             </Button>
           </div>
