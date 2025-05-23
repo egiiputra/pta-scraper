@@ -120,8 +120,16 @@ fastify.get('/journals/:path', async function handler (request, reply) {
         const $ = await cheerio.fromURL(data.detailLink)
         const paragraphs = $('p[align=justify]').contents()
 
-        data.abstraksi = paragraphs[0].data
-        data.abstract = paragraphs[1].data
+        try {
+          data.abstraksi = paragraphs[0].data
+        } catch {
+          data.abstraksi = '-'
+        }
+        try {
+          data.abstract = paragraphs[1].data
+        } catch {
+          data.abstract = '-'
+        }
         results.push(data)
       } else {
         results.push(data)
