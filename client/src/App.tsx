@@ -1,8 +1,11 @@
 import './App.css'
+import { useState, type FormEvent, type FormEventHandler } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -17,23 +20,107 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Value } from '@radix-ui/react-select'
+import { Rows } from 'lucide-react'
+
+const faculties: Record<string, string> = {
+  fh: 'Hukum',
+  fp: 'Pertanian',
+  feb: 'Ekonomi dan Bisnis',
+  ft: 'Teknik',
+  fisib: 'Ilmu Sosial dan Ilmu Budaya',
+  fkis: 'Keislaman',
+  fkip: 'Pendidikan',
+}
+
+const prodi: string[] = [
+  'ilmu-hukum',
+  'magister-ilmu-hukum',
+  'teknologi-industri-pertanian',
+  'agribisnis',
+  'agroteknologi',
+  'ilmu-kelautan',
+  'manajemen-sumberdaya-perairan',
+  'magister-pengelolaan-sda',
+  'ekonomi-pembangunan',
+  'manajemen',
+  'akuntansi',
+  'd3-akuntansi',
+  'magister-manajemen',
+  'magister-akuntansi',
+  'd3-enterpreneurship',
+  'magister-ilmu-ekonomi',
+  'teknik-industri',
+  'teknik-informatika',
+  'manajemen-informatika',
+  'teknik-multimedia-dan-jaringan',
+  'mekatronika',
+  'teknik-elektro',
+  'teknik-mekatronika',
+  'sosiologi',
+  'ilmu-komunikasi',
+  'psikologi',
+  'sastra-inggris',
+  'ekonomi-syariah',
+  'hukum-bisnis-syariah',
+  'pgsd',
+  'pendidikan-bahasa-indonesia',
+  'pendidikan-informatika',
+  'pendidikan-ipa',
+  'pgpaud',
+]
+
+type JournalInfo = {
+  judul: string;
+  penulis: string;
+  pembimbing1: string;
+  pembimbing2: string;
+  abstract: undefined | string;
+  abstraksi: undefined | string;
+}
 
 function App() {
+  const [ includeAbstract, setIncludeAbstract] = useState(false)
+  const [ data, setData ] = useState<JournalInfo[]>([])
+
+  const handleSubmit: FormEventHandler = (event: FormEvent) => {
+    event.preventDefault();
+    // @ts-ignore
+    const formData = new FormData(event.target);
+    console.log(formData.get('selectBy'))
+    const formValues = Object.fromEntries(formData.entries());
+    console.log(formValues);
+     // Handle form submission logic here
+    fetch(`/api/journals/${formValues.searchBy}?startPage=${formValues.startPage}&endPage=${formValues.endPage}&includeAbstract=${includeAbstract}`)
+      .then(res => res.json())
+      .then(data => setData(data))
+  };
+
   return (
     <div className="w-screen">
       <div className="w-8/10 mx-auto">
         <h1 className="text-4xl mt-10 mb-5">Scraper Portal Tugas Akhir UTM </h1>
 
-        <form action="" className="flex gap-3 items-center mb-5">
-          <Label htmlFor="selectBy">Select by</Label>
-          <Select name="selectBy">
-            <SelectTrigger className="w-[280px] data-[placeholder]:text-muted-foreground" color="indigo">
+        <form onSubmit={handleSubmit} className="w-full flex flex-wrap gap-3 items-center mb-5">
+          <Label htmlFor="searchBy">Select by</Label>
+          <Select name="searchBy" required={true}>
+            <SelectTrigger className="w-[280px]">
               <SelectValue placeholder="select prodi or fakultas" />
             </SelectTrigger>
             <SelectContent className="bg-white text-black">
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
+              <SelectGroup>
+                <SelectLabel>Fakultas</SelectLabel>
+                {Object.entries(faculties).map(([val, text], _) =>
+                  <SelectItem value={val}>{text}</SelectItem>
+                )}
+                <SelectItem value="system">System</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Fakultas</SelectLabel>
+                {prodi.map((val, _) =>
+                  <SelectItem value={val}>{val.split('-').join(' ')}</SelectItem>
+                )}
+              </SelectGroup>
             </SelectContent>
           </Select>
 
@@ -61,7 +148,11 @@ function App() {
             </SelectContent>
           </Select>
           <Label>Include abstract?</Label>
-          <Checkbox id="includeAbstract" name="includeAbstract"/>
+          <Checkbox 
+            id="includeAbstract"
+            name="includeAbstract"
+            checked={includeAbstract}
+            onClick={() => setIncludeAbstract(!includeAbstract)}/>
 
           <Button type="submit">Scrape</Button>
         </form>
@@ -69,19 +160,33 @@ function App() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Judul</TableHead>
+              <TableHead>Penulis</TableHead>
+              <TableHead>Pembimbing 1</TableHead>
+              <TableHead>Pembimbing 2</TableHead>
+              {includeAbstract && (
+                <>
+                <TableHead>Abstraksi</TableHead>
+                <TableHead>Abstract</TableHead>
+                </>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">INV001</TableCell>
-              <TableCell>Paid</TableCell>
-              <TableCell>Credit Card</TableCell>
-              <TableCell className="text-right">$250.00</TableCell>
-            </TableRow>
+            {data.map((row, _) => 
+              <TableRow>
+                <TableCell className="font-medium">{row.judul}</TableCell>
+                <TableCell>{row.penulis}</TableCell>
+                <TableCell>{row.pembimbing1}</TableCell>
+                <TableCell>{row.pembimbing2}</TableCell>
+                {includeAbstract && (
+                  <>
+                  <TableCell>{row.abstraksi}</TableCell>
+                  <TableCell>{row.abstract}</TableCell>
+                  </>
+                )}
+              </TableRow>
+            )}
           </TableBody>
         </Table>
 
