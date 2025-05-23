@@ -88,9 +88,35 @@ function App() {
       .then(data => setData(data))
   };
 
+  function downloadJSONAsCSV() {
+    let csvData = jsonToCsv(data); // Add .items.data
+    // Create a CSV file and allow the user to download it
+    let blob = new Blob([csvData], { type: 'text/csv' });
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'data.csv';
+    document.body.appendChild(a);
+    a.click();
+  }
+
+  function jsonToCsv(jsonData: JournalInfo[]) {
+    let csv = '';
+    // Get the headers
+    let headers = Object.keys(jsonData[0]);
+    csv += headers.join(',') + '\n';
+    // Add the data
+    jsonData.forEach(function (row: JournalInfo) {
+        // @ts-ignore
+        let data = headers.map(header => JSON.stringify(row[header])).join(','); // Add JSON.stringify statement
+        csv += data + '\n';
+    });
+    return csv;
+  }
+
   return (
-    <div className="w-vw h-svh overflow-hidden">
-      <div className="w-8/10 mx-auto">
+    <div className="w-vw">
+      <div className="w-8/10 mx-auto flex flex-col h-svh">
         <h1 className="text-4xl pt-10 mb-5">Scraper Portal Tugas Akhir UTM </h1>
 
         <form onSubmit={handleSubmit} className="w-full items-center mb-5">
@@ -161,12 +187,12 @@ function App() {
             <Button type="submit" className="bg-green-600">
               <Download/> Scrape
             </Button>
-            <Button className="bg-blue-500">
+            <Button className="bg-blue-500" onClick={downloadJSONAsCSV}>
               <FileDown /> Download CSV
             </Button>
           </div>
         </form>
-        <div className="overflow-x-auto overflow-y-scroll max-h-[400px]">
+        <div className="overflow-x-auto overflow-y-scroll flex-grow">
           <table 
             className={cn(
               includeAbstract ? "w-[2600px]":"min-w-full w-auto",
@@ -174,22 +200,22 @@ function App() {
             )}
           >
             <thead>
-              <tr className="border-b-1 border-gray-400">
-                <th className="sticky w-[400px] text-left py-1 px-2">Judul</th>
-                <th className="sticky w-[200px] text-left py-1 px-2">Penulis</th>
-                <th className="sticky w-[200px] text-left py-1 px-2">Pembimbing 1</th>
-                <th className="sticky w-[200px] text-left py-1 px-2">Pembimbing 2</th>
+              <tr className="border-b-1 border-gray-400 h-[30px]">
+                <th className="w-[400px] text-left py-1 px-2">Judul</th>
+                <th className="w-[200px] text-left py-1 px-2">Penulis</th>
+                <th className="w-[200px] text-left py-1 px-2">Pembimbing 1</th>
+                <th className="w-[200px] text-left py-1 px-2">Pembimbing 2</th>
                 {includeAbstract && (
                   <>
-                  <th className="sticky w-[800px] text-left py-1 px-2">Abstraksi 2</th>
-                  <th className="sticky w-[800px] text-left py-1 px-2">Abstract</th>
+                  <th className="w-[800px] text-left py-1 px-2">Abstraksi 2</th>
+                  <th className="w-[800px] text-left py-1 px-2">Abstract</th>
                   </>
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="">
               {data.map((row, _) => 
-                <tr className=" border-b-1 border-gray-200">
+                <tr className="border-b-1 border-gray-200">
                   <td className="text-wrap py-1 px-2">{row.judul}</td>
                   <td className="text-wrap py-1 px-2">{row.penulis}</td>
                   <td className="text-wrap py-1 px-2">{row.pembimbing1}</td>
