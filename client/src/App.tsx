@@ -12,16 +12,8 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Value } from '@radix-ui/react-select'
-import { Rows } from 'lucide-react'
+import { FileDown, Download } from 'lucide-react';
+import { cn } from './lib/utils'
 
 const faculties: Record<string, string> = {
   fh: 'Hukum',
@@ -97,99 +89,122 @@ function App() {
   };
 
   return (
-    <div className="w-screen">
+    <div className="w-vw h-svh overflow-hidden">
       <div className="w-8/10 mx-auto">
-        <h1 className="text-4xl mt-10 mb-5">Scraper Portal Tugas Akhir UTM </h1>
+        <h1 className="text-4xl pt-10 mb-5">Scraper Portal Tugas Akhir UTM </h1>
 
-        <form onSubmit={handleSubmit} className="w-full flex flex-wrap gap-3 items-center mb-5">
-          <Label htmlFor="searchBy">Select by</Label>
-          <Select name="searchBy" required={true}>
-            <SelectTrigger className="w-[280px]">
-              <SelectValue placeholder="select prodi or fakultas" />
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black">
-              <SelectGroup>
-                <SelectLabel>Fakultas</SelectLabel>
-                {Object.entries(faculties).map(([val, text], _) =>
-                  <SelectItem value={val}>{text}</SelectItem>
-                )}
-                <SelectItem value="system">System</SelectItem>
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Fakultas</SelectLabel>
-                {prodi.map((val, _) =>
-                  <SelectItem value={val}>{val.split('-').join(' ')}</SelectItem>
-                )}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+        <form onSubmit={handleSubmit} className="w-full items-center mb-5">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex gap-3">
+              <Label htmlFor="searchBy">Select by</Label>
+              <Select name="searchBy" required={true}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="select prodi or fakultas" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black">
+                  <SelectGroup>
+                    <SelectLabel>Fakultas</SelectLabel>
+                    {Object.entries(faculties).map(([val, text], _) =>
+                      <SelectItem value={val}>{text}</SelectItem>
+                    )}
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Fakultas</SelectLabel>
+                    {prodi.map((val, _) =>
+                      <SelectItem value={val}>{val.split('-').join(' ')}</SelectItem>
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Label htmlFor="startPage">page start</Label>
-          <Select name="startPage" defaultValue="1">
-            <SelectTrigger className="w-[80px]">
-              <SelectValue placeholder="" />
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black">
-              {Array.from({ length: 20 }, (_, index) => index+1).map((val, _) =>
-                <SelectItem value={val.toString()}>{val}</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+            <div className="flex gap-3">
+              <Label htmlFor="startPage">page start</Label>
+              <Select name="startPage" defaultValue="1">
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black">
+                  {Array.from({ length: 20 }, (_, index) => index+1).map((val, _) =>
+                    <SelectItem value={val.toString()}>{val}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Label htmlFor="endPage">page end</Label>
-          <Select name="endPage" defaultValue="1">
-            <SelectTrigger className="w-[80px]">
-              <SelectValue placeholder="" />
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black">
-              {Array.from({ length: 20 }, (_, index) => index+1).map((val, _) =>
-                <SelectItem value={val.toString()}>{val}</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          <Label>Include abstract?</Label>
-          <Checkbox 
-            id="includeAbstract"
-            name="includeAbstract"
-            checked={includeAbstract}
-            onClick={() => setIncludeAbstract(!includeAbstract)}/>
+            <div className="flex gap-3">
+              <Label htmlFor="endPage">page end</Label>
+              <Select name="endPage" defaultValue="1">
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black">
+                  {Array.from({ length: 20 }, (_, index) => index+1).map((val, _) =>
+                    <SelectItem value={val.toString()}>{val}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Button type="submit">Scrape</Button>
+            <div className="flex gap-3">
+              <Label>Include abstract?</Label>
+              <Checkbox 
+                id="includeAbstract"
+                name="includeAbstract"
+                checked={includeAbstract}
+                onClick={() => setIncludeAbstract(!includeAbstract)}/>
+            </div>
+          </div>
+
+          <div className="flex flex-row gap-3 mt-5">
+            <Button type="submit" className="bg-green-600">
+              <Download/> Scrape
+            </Button>
+            <Button className="bg-blue-500">
+              <FileDown /> Download CSV
+            </Button>
+          </div>
         </form>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Judul</TableHead>
-              <TableHead>Penulis</TableHead>
-              <TableHead>Pembimbing 1</TableHead>
-              <TableHead>Pembimbing 2</TableHead>
-              {includeAbstract && (
-                <>
-                <TableHead>Abstraksi</TableHead>
-                <TableHead>Abstract</TableHead>
-                </>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, _) => 
-              <TableRow>
-                <TableCell className="font-medium">{row.judul}</TableCell>
-                <TableCell>{row.penulis}</TableCell>
-                <TableCell>{row.pembimbing1}</TableCell>
-                <TableCell>{row.pembimbing2}</TableCell>
+        <div className="overflow-x-auto overflow-y-scroll max-h-[400px]">
+          <table 
+            className={cn(
+              includeAbstract ? "w-[2600px]":"min-w-full w-auto",
+              "block"
+            )}
+          >
+            <thead>
+              <tr className="border-b-1 border-gray-400">
+                <th className="sticky w-[400px] text-left py-1 px-2">Judul</th>
+                <th className="sticky w-[200px] text-left py-1 px-2">Penulis</th>
+                <th className="sticky w-[200px] text-left py-1 px-2">Pembimbing 1</th>
+                <th className="sticky w-[200px] text-left py-1 px-2">Pembimbing 2</th>
                 {includeAbstract && (
                   <>
-                  <TableCell>{row.abstraksi}</TableCell>
-                  <TableCell>{row.abstract}</TableCell>
+                  <th className="sticky w-[800px] text-left py-1 px-2">Abstraksi 2</th>
+                  <th className="sticky w-[800px] text-left py-1 px-2">Abstract</th>
                   </>
                 )}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, _) => 
+                <tr className=" border-b-1 border-gray-200">
+                  <td className="text-wrap py-1 px-2">{row.judul}</td>
+                  <td className="text-wrap py-1 px-2">{row.penulis}</td>
+                  <td className="text-wrap py-1 px-2">{row.pembimbing1}</td>
+                  <td className="text-wrap py-1 px-2">{row.pembimbing2}</td>
+                  {includeAbstract && (
+                    <>
+                    <td className="text-wrap py-1 px-2">{row.abstraksi}</td>
+                    <td className="text-wrap py-1 px-2">{row.abstract}</td>
+                    </>
+                  )}
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
