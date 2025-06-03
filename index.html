@@ -15,6 +15,11 @@
     window.ui = SwaggerUIBundle({
       url: 'https://egiiputra.github.io/pta-scraper/docs/openapi.json',
       dom_id: '#swagger-ui',
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      layout: "StandaloneLayout",
     });
   };
 </script>
